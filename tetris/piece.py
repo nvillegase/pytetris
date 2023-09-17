@@ -1,8 +1,9 @@
+import random
+
 from colorama import Fore
-from .bit import Bit
 from enum import Enum
 
-import random
+from .bit import Bit
 
 
 class PieceType(Enum):
@@ -12,6 +13,7 @@ class PieceType(Enum):
     I = 'I'
     T = 'T'
     Z = 'Z'
+    J = 'J'
 
 
 class Piece:
@@ -21,40 +23,46 @@ class Piece:
         if piece_type == PieceType.L.value:
             color = Fore.YELLOW
             self.repr = [
-                [Bit(), Bit(), Bit(True, color)],
-                [Bit(True, color), Bit(True, color), Bit(True, color)]]
+                [Bit(), Bit(), Bit(color)],
+                [Bit(color), Bit(color), Bit(color)]]
         elif piece_type == PieceType.O.value:
             color = Fore.RED
             self.repr = [
-                [Bit(True, color), Bit(True, color)],
-                [Bit(True, color), Bit(True, color)]
+                [Bit(color), Bit(color)],
+                [Bit(color), Bit(color)]
             ]
         elif piece_type == PieceType.S.value:
             color = Fore.GREEN
             self.repr = [
-                [Bit(), Bit(True, color), Bit(True, color)],
-                [Bit(True, color), Bit(True, color), Bit()]
+                [Bit(), Bit(color), Bit(color)],
+                [Bit(color), Bit(color), Bit()]
             ]
             
         elif piece_type == PieceType.I.value:
             color = Fore.BLUE
             self.repr = [
-                [Bit(True, color), Bit(True, color), Bit(True, color), Bit(True, color)]
+                [Bit(color), Bit(color), Bit(color), Bit(color)]
             ]
         
         elif piece_type == PieceType.T.value:
             color = Fore.CYAN
             self.repr = [
-                [Bit(), Bit(True, color), Bit()],
-                [Bit(True, color), Bit(True, color), Bit(True, color)]
+                [Bit(), Bit(color), Bit()],
+                [Bit(color), Bit(color), Bit(color)]
             ]
             
         elif piece_type == PieceType.Z.value:
             color = Fore.WHITE
             self.repr = [
-                [Bit(True, color), Bit(True, color), Bit()],
-                [Bit(), Bit(True, color), Bit(True, color)]
+                [Bit(color), Bit(color), Bit()],
+                [Bit(), Bit(color), Bit(color)]
             ]
+            
+        elif piece_type == PieceType.J.value:
+            color = Fore.MAGENTA
+            self.repr = [
+                [Bit(color), Bit(), Bit()],
+                [Bit(color), Bit(color), Bit(color)]]
             
         self.piece_type = piece_type
         

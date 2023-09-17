@@ -3,7 +3,7 @@ from tetris.board import Board
 
 from time import sleep
 
-import keyboard
+from getkey import getkey, keys
 import threading
 
 
@@ -23,15 +23,13 @@ if __name__ == '__main__':
     step_thread.start()
     
     while True:
-        event = keyboard.read_event()
-        if not event.event_type == keyboard.KEY_DOWN:
-            continue
-        if event.name == 'left':
-            board.left()
-        elif event.name == 'right':
-            board.right()
-        elif event.name == 'up':
+        key = getkey(blocking=True)
+        if key == keys.UP:
             board.rotate()
-        elif event.name == 'down':
+        elif key == keys.LEFT:
+            board.left()
+        elif key == keys.RIGHT:
+            board.right()
+        elif key == keys.DOWN:
             board.down()
         board.new_frame()
