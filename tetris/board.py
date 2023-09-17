@@ -4,7 +4,6 @@ from .piece import Piece
 from .bit import Bit
 
 import random
-
 import os
 
 
@@ -23,10 +22,10 @@ class Coordinate:
 class Board:
 
     def __init__(self, width, height, initial_piece: Piece):
-        self.width = width
-        self.height = height
+        self.board_width = width
+        self.board_height = height
         self.board = [
-            [Bit(False, Fore.BLACK) for _ in range(width)]
+            [Bit() for _ in range(width)]
                 for _ in range(height)
         ]
         self.active_piece = None
@@ -40,7 +39,7 @@ class Board:
         if piece == None:
             piece = Piece.pick_random()
             
-        spawn_coordinate = random.randint(0, self.width - 4)
+        spawn_coordinate = random.randint(0, self.board_width - 4)
         self.active_piece = piece
         self.active_position = Coordinate(spawn_coordinate, 0)
             
@@ -48,7 +47,7 @@ class Board:
             self.next_piece = Piece.pick_random()
 
 
-    def collision(self, piece: Piece, offset: Coordinate):
+    def collision(self, piece: Piece, offset=Coordinate(0, 0)):
 
         piece_data = piece._rotated
         new_position = self.active_position + offset
@@ -56,21 +55,21 @@ class Board:
         piece_height = len(piece_data)
         piece_width = len(piece_data[0])
 
-        if new_position.y + piece_height > self.height:
+        if new_position.y + piece_height > self.board_height:
             return True
         if new_position.x < 0:
             return True
-        if new_position.x + piece_width > self.width:
+        if new_position.x + piece_width > self.board_width:
             return True
         
         for j, row in enumerate(piece_data):
 
             for i, bit in enumerate(row):
 
-                if not bit.occupied:
+                if bit.empty:
                     continue
 
-                if self.board[new_position.y + j][new_position.x + i].occupied:
+                if not self.board[new_position.y + j][new_position.x + i].empty:
                     return True
         
         return False
@@ -87,7 +86,7 @@ class Board:
 
         for j in range(piece_height):
             for i in range(piece_width):
-                if piece_data[j][i].occupied:
+                if not piece_data[j][i].empty:
                     self.board[position.y + j][position.x + i] = piece_data[j][i]
 
 
@@ -111,6 +110,8 @@ class Board:
 
     def rotate(self):
         self.active_piece.rotation = (self.active_piece.rotation + 90) % 360
+        offset = self.fix_offbounds_rotation(self.active_piece)
+        self.active_position += offset
 
 
     def new_frame(self):
@@ -134,57 +135,59 @@ class Board:
     def melt(self, row: int):
         self.board.pop(row)
         self.board = [
-            [Bit() for _ in range(self.width)],
+            [Bit() for _ in range(self.board_width)],
             *[r for r in self.board],
         ]
 
 
     def check_full_rows(self):
         score_multiplier = 1
-        for j in range(self.height):
-            is_full = True
-            for i in range(self.width):
-                if not self.board[j][i].occupied:
-                    is_full = False
+        for j in range(self.board_height):
+            is_row_full = True
+            for i in range(self.board_width):
+                if self.board[j][i].empty:
+                    is_row_full = False
                     break
-            if is_full:
+            if is_row_full:
                 self.melt(j)
                 self.score += score_multiplier
                 score_multiplier += 1
 
 
+    def fix_offbounds_rotation(self, piece: Piece):
+        piece_data = piece._rotated
+        piece_width = len(piece_data[0])
+        offset = max(self.active_position.x + piece_width - self.board_width, 0)
+        return Coordinate(-offset, 0) 
+
+
     def __str__(self):
         rows = []
         rows.append(f"Next piece:\n{str(self.next_piece)}")
-        for j in range(self.height):
+        for j in range(self.board_height):
             row = f"{j:02d} "
-            for i in range(self.width):
+            for i in range(self.board_width):
                 bit = self.board[j][i]
                 active_piece = self.active_piece._rotated
                 piece_width = len(active_piece[0])
                 piece_height = len(active_piece)
-
                 if (
                     (self.active_position.x <= i < (self.active_position.x + piece_width))
                     and
                     (self.active_position.y <= j < (self.active_position.y + piece_height))
                     and
-                    (not bit.occupied)
+                    (bit.empty)
                 ):
                     piece_x = i - self.active_position.x
                     piece_y = j - self.active_position.y
-                    row += active_piece[piece_y][piece_x].color + 2*Bit.SQ + Fore.RESET
+                    row += str(active_piece[piece_y][piece_x]) # .color + 2*Bit.SQ + Fore.RESET
                 else:
-                    if bit.occupied:
-                        row += bit.color + 2*Bit.SQ + Fore.RESET
-                    else:
-                        row += bit.color + 2*Bit.SQ + Fore.RESET
+                    row += str(bit)
 
             rows.append(row)
             
         rows.append('    0 1 2 3 4 5 6 7 8 9')
         rows.append(f"Score: {self.score}")
-        
 
         return '\n'.join(rows)
 
